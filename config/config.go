@@ -85,6 +85,7 @@ func (s *Smtp) Flags(host, sender string) {
 
 // SqlDB stores the configuration for a SQL database.
 type SqlDB struct {
+	Driver       string
 	DSN          string
 	MaxOpenConns int
 	MaxIdleConns int
@@ -94,7 +95,8 @@ type SqlDB struct {
 // Flags parses the flags for a SQL database. The parameters it takes are
 // for the default max open connections, max idle connections and max idle
 // connection times respectively.
-func (s *SqlDB) Flags(open, idle int, idleTime string) {
+func (s *SqlDB) Flags(driver string, open, idle int, idleTime string) {
+	flag.StringVar(&s.Driver, "db-driver-name", driver, "Database driver name")
 	flag.StringVar(&s.DSN, "db-dsn", "", "Database DSN (Data Source Name)")
 	flag.IntVar(&s.MaxOpenConns, "db-max-open-conns", open, "Database max open connections")
 	flag.IntVar(&s.MaxIdleConns, "db-max-idle-conns", idle, "Database max idle connections")
