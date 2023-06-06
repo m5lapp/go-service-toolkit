@@ -104,8 +104,8 @@ func (s *SqlDB) Flags(open, idle int, idleTime string) {
 // Flags parses the flags for a SQL database. The parameters it takes are
 // for the default max open connections, max idle connections and max idle
 // connection times respectively.
-func SqlDbFlags(open, idle int, idleTime string) SqlDB {
-	var s SqlDB
+func SqlDbFlags(open, idle int, idleTime string) *SqlDB {
+	var s *SqlDB
 	flag.StringVar(&s.dsn, "db-dsn", "", "Database DSN (Data Source Name)")
 	flag.IntVar(&s.maxOpenConns, "db-max-open-conns", open, "Database max open connections")
 	flag.IntVar(&s.maxIdleConns, "db-max-idle-conns", idle, "Database max idle connections")
