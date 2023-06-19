@@ -5,6 +5,19 @@ import (
 	"strings"
 )
 
+// AuthService stores the configuration for an authentication service.
+type AuthService struct {
+	Addr string
+}
+
+// Flags parses the flags configured for an auth service. The parameters it
+// takes are the default values to use for the rps, burst and active flags
+// respectively.
+func (a *AuthService) Flags(addr string) {
+	flag.StringVar(&a.Addr, "addr", addr,
+		"Auth service HTTP address in format: [HOST]:PORT")
+}
+
 // Cors stores the configuration for CORS (Cross-Origin Resource Sharing).
 type Cors struct {
 	TrustedOrigins []string
@@ -80,7 +93,8 @@ func (s *Smtp) Flags(host, sender string) {
 	flag.IntVar(&s.Port, "smtp-port", 25, "SMTP port")
 	flag.StringVar(&s.Username, "smtp-username", "", "SMTP username")
 	flag.StringVar(&s.Password, "smtp-password", "", "SMTP password")
-	flag.StringVar(&s.Sender, "smtp-sender", sender, "SMTP sender, format: Name <email@address.com>")
+	flag.StringVar(&s.Sender, "smtp-sender", sender,
+		"SMTP sender, format: Name <email@address.com>")
 }
 
 // SqlDB stores the configuration for a SQL database.
