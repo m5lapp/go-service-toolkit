@@ -32,6 +32,8 @@ func (app *WebApp) RecoverPanic(next http.Handler) http.Handler {
 	})
 }
 
+// RateLimit is a middleware function that limits the number of requests a
+// client (based on their IP address) can make in a given period.
 func (app *WebApp) RateLimit(cfg config.Limiter, next http.Handler) http.Handler {
 	type client struct {
 		limiter  *rate.Limiter
@@ -89,98 +91,9 @@ func (app *WebApp) RateLimit(cfg config.Limiter, next http.Handler) http.Handler
 	})
 }
 
-// func (app *WebApp) authenticate(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		w.Header().Add("vary", "Authorization")
-// 		authHeader := r.Header.Get("Authorization")
-
-// 		if authHeader == "" {
-// 			r = app.contextSetUser(r, data.AnonymousUser)
-// 			next.ServeHTTP(w, r)
-// 			return
-// 		}
-
-// 		headerParts := strings.Split(authHeader, " ")
-// 		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-// 			app.InvalidAuthenticationTokenResponse(w, r)
-// 			return
-// 		}
-
-// 		token := headerParts[1]
-// 		v := validator.New()
-
-// 		data.ValidateTokenPlaintext(v, token)
-// 		if !v.Valid() {
-// 			app.InvalidAuthenticationTokenResponse(w, r)
-// 			return
-// 		}
-
-// 		// TODO: This needs to be an HTTP call.
-// 		user, err := app.models.Users.GetForToken(data.ScopeAuthentication, token)
-// 		if err != nil {
-// 			switch {
-// 			case errors.Is(err, data.ErrRecordNotFound):
-// 				app.InvalidAuthenticationTokenResponse(w, r)
-// 			default:
-// 				app.ServerErrorResponse(w, r, err)
-// 			}
-// 			return
-// 		}
-
-// 		r = app.contextSetUser(r, user)
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
-
-// func (app *WebApp) requireAuthenticatedUser(next http.HandlerFunc) http.HandlerFunc {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		user := app.contextGetUser(r)
-
-// 		if user.IsAnonymous() {
-// 			app.AuthenticationRequiredResponse(w, r)
-// 			return
-// 		}
-
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
-
-// func (app *WebApp) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
-// 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		user := app.contextGetUser(r)
-
-// 		if !user.Activated {
-// 			app.InactiveAccountResponse(w, r)
-// 			return
-// 		}
-
-// 		next.ServeHTTP(w, r)
-// 	})
-
-// 	return app.RequireAuthenticatedUser(fn)
-// }
-
-// func (app *WebApp) requirePermission(code string, next http.HandlerFunc) http.HandlerFunc {
-// 	fn := func(w http.ResponseWriter, r *http.Request) {
-// 		user := app.contextGetUser(r)
-
-// 		permissions, err := app.models.Permissions.GetAllForUser(user.ID)
-// 		if err != nil {
-// 			app.ServerErrorResponse(w, r, err)
-// 			return
-// 		}
-
-// 		if !permissions.Include(code) {
-// 			app.NotPermittedResponse(w, r)
-// 			return
-// 		}
-
-// 		next.ServeHTTP(w, r)
-// 	}
-
-// 	return app.requireActivatedUser(fn)
-// }
-
+// EnableCORS is a middleware function that handles CORS (Cross-Origin Resource
+// Sharing) requests to prmit a web browser to make requests to a different
+// origin (domain, scheme or port) to the main we page.
 func (app *WebApp) EnableCORS(cfg config.Cors, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Vary", "Origin")
@@ -242,6 +155,8 @@ func (mw *metricsResponseWriter) Unwrap() http.ResponseWriter {
 	return mw.wrapped
 }
 
+// Metrics is a middleware function that keeps track of a number of metrics
+// relating to HTTP requests.
 func (app *WebApp) Metrics(next http.Handler) http.Handler {
 	var (
 		totalRequestsReceived  = expvar.NewInt("total_requests_received")
