@@ -3,7 +3,8 @@ package validator
 import "regexp"
 
 var (
-	EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	EmailRX    = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	UsernameRX = regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9_-]{3,30}[A-Za-z0-9]")
 )
 
 // A Validator is simply a map from field names to error messages.
@@ -66,4 +67,11 @@ func Unique[T comparable](values []T) bool {
 	}
 
 	return len(values) == len(uniqueValues)
+}
+
+// ValidateEmail performs standard validation checks against the provided email
+// address and populates any errors into v.
+func ValidateEmail(v *Validator, email string) {
+	v.Check(email != "", "email", "must be provided")
+	v.Check(Matches(email, EmailRX), "email", "must be a valid email address")
 }
