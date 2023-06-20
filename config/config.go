@@ -2,6 +2,9 @@ package config
 
 import (
 	"flag"
+	"fmt"
+	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -20,11 +23,47 @@ func (a *AuthService) Flags(addr string) {
 
 // Cors stores the configuration for CORS (Cross-Origin Resource Sharing).
 type Cors struct {
+	AllowMethods   []string
 	TrustedOrigins []string
 }
 
 // Flags parses the flags configured for CORS.
+// TODO: These two flags are not currently populated when called.
 func (c *Cors) Flags() {
+	flag.Func(
+		"cors-allow-methods",
+		"HTTP methods allowed for CORS requests (space seperated)",
+		func(val string) error {
+			allowedMethods := map[string]bool{
+				http.MethodDelete:  true,
+				http.MethodGet:     true,
+				http.MethodHead:    true,
+				http.MethodOptions: true,
+				http.MethodPatch:   true,
+				http.MethodPost:    true,
+				http.MethodPut:     true,
+			}
+
+			upper := strings.ToUpper(val)
+			methods := strings.Fields(upper)
+			sort.Strings(methods)
+
+			if len(methods) == 0 {
+				return fmt.Errorf("no HTTP methods supplied for cors-allow-methods")
+			}
+
+			for _, method := range methods {
+				_, ok := allowedMethods[method]
+				if !ok {
+					return fmt.Errorf("invalid HTTP method for CORS: %s", method)
+				}
+			}
+
+			c.AllowMethods = methods
+			return nil
+		},
+	)
+
 	flag.Func(
 		"cors-trusted-origins",
 		"Trusted CORS origins (space seperated)",
