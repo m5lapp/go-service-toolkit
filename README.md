@@ -43,11 +43,11 @@ type Book struct {
 }
 
 type AuthorModel struct {
-	DB *sql.DB
+    DB *sql.DB
 }
 
 type AuthorModel struct {
-	DB *sql.DB
+    DB *sql.DB
 }
 
 ```
@@ -58,15 +58,15 @@ Then, in the `internal/data/models.go` file, create a `Models` struct that conta
 package data
 
 type Models struct {
-	Author AuthorModel
-	Book   BookModel
+    Author AuthorModel
+    Book   BookModel
 }
 
 func NewModels(db *sql.DB) Models {
-	return Models{
-		Author: AuthorModel{DB: db},
-		Book:   BookModel{DB: db},
-	}
+    return Models{
+        Author: AuthorModel{DB: db},
+        Book:   BookModel{DB: db},
+    }
 }
 ```
 
@@ -76,9 +76,9 @@ In the `cmd/api/main.go` file, create a struct that **embeds** a `webapp.WebApp`
 ```go
 package main
 type app struct {
-	webapp.WebApp
-	models  data.Models
-	dbCfg   config.SqlDB
+    webapp.WebApp
+    models  data.Models
+    dbCfg   config.SqlDB
     smtpCfg config.Smtp
     mailer  mailer.Mailer
 }
@@ -112,8 +112,8 @@ logger := slog.New(logHandler)
 // If required, create a new sql.DB instance.
 db, err := sqldb.OpenDB(dbCfg)
 if err != nil {
-	logger.Error(err.Error(), nil)
-	os.Exit(1)
+    logger.Error(err.Error(), nil)
+    os.Exit(1)
 }
 defer db.Close()
 
@@ -122,18 +122,18 @@ logger.Info("Database connection pool established")
 // Create an instance of the app struct you defined, passing in the required
 // configurations and dependencies.
 app := &app{
-	WebApp:  webapp.New(serverCfg, logger),
-	models:  data.NewModels(db),
-	cdCfg:   dbCfg,
+    WebApp:  webapp.New(serverCfg, logger),
+    models:  data.NewModels(db),
+    cdCfg:   dbCfg,
     smtpCfg: smtpCfg,
-	mailer:  mailer.New(&smtpCfg, templateFS),
+    mailer:  mailer.New(&smtpCfg, templateFS),
 }
 
 // Call the app.Serve() method to start the application running.
 err = app.Serve(app.routes())
 if err != nil {
-	logger.Error(err.Error(), nil)
-	os.Exit(1)
+    logger.Error(err.Error(), nil)
+    os.Exit(1)
 }
 ```
 
@@ -144,10 +144,10 @@ In the `cmd/api/routes.go` file, create a `routes()` method with the `app` struc
 package main
 
 func (app *app) routes() http.Handler {
-	app.Router.HandlerFunc(http.MethodPost, "/v1/authors", app.createAuthorHandler)
-	app.Router.HandlerFunc(http.MethodPost, "/v1/books", app.createBookHandler)
+    app.Router.HandlerFunc(http.MethodPost, "/v1/authors", app.createAuthorHandler)
+    app.Router.HandlerFunc(http.MethodPost, "/v1/books", app.createBookHandler)
 
-	return app.Metrics(app.RecoverPanic(app.Router))
+    return app.Metrics(app.RecoverPanic(app.Router))
 }
 ```
 
