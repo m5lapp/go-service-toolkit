@@ -14,6 +14,9 @@ To get started using this toolkit, first, create a new, empty Go project and the
 # Initialise a new Go project with the given MODULE_PATH.
 go mod init MODULE_PATH
 
+# Fetch the latest version of this package.
+go get github.com/m5lapp/go-service-toolkit@latest
+
 # Create the required directories.
 mkdir -p cmd/api/ internal/data/ migrations/
 
