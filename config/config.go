@@ -117,6 +117,18 @@ func (s *Server) Flags(addr string) {
 	flag.StringVar(&s.Env, "env", "development", "Environment (development|staging|production)")
 }
 
+// Service stores the configuration for an external service that can be called.
+type Service struct {
+	Addr string
+}
+
+// Flags parses the flags for an external service. The parameters are the name
+// and description to use for the flag.
+func (s *Service) Flags(flagName, flagDesc string) {
+	desc := fmt.Sprintf(flagDesc, "in format: [HOST]:POST")
+	flag.StringVar(&s.Addr, flagName, "", desc)
+}
+
 // Smtp stores the configuration for an SMTP server connection.
 type Smtp struct {
 	Host     string
