@@ -57,8 +57,8 @@ func (app *WebApp) errorResponse(w http.ResponseWriter, r *http.Request,
 }
 
 // ServerErrorResponse sends a generic error message to the client with an HTTP
-// 500 error code so as not to disclose to much information to the client.
-// Details of the error will be logged locally.
+// 500 (Internal Server Error) error code so as not to disclose to much
+// information to the client. Details of the error will be logged locally.
 func (app *WebApp) ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
 
@@ -81,6 +81,8 @@ func (app *WebApp) failResponse(w http.ResponseWriter, r *http.Request, status i
 	}
 }
 
+// NotFoundResponse returns an HTTP 404 (Not Found) response with an appropriate
+// error message.
 func (app *WebApp) NotFoundResponse(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"error": "The requested resource could not be found",
@@ -88,6 +90,8 @@ func (app *WebApp) NotFoundResponse(w http.ResponseWriter, r *http.Request) {
 	app.failResponse(w, r, http.StatusNotFound, data)
 }
 
+// MethodNotAllowedError returns an HTTP 405 (Method Not Allowed) response with
+// an appropriate error message and help text.
 func (app *WebApp) MethodNotAllowedError(w http.ResponseWriter, r *http.Request) {
 	e := fmt.Sprintf("The %s method is not supported for this resource", r.Method)
 	a := "Check the Allow header of an OPTIONS request for a list of accepted methods"
@@ -98,6 +102,8 @@ func (app *WebApp) MethodNotAllowedError(w http.ResponseWriter, r *http.Request)
 	app.failResponse(w, r, http.StatusMethodNotAllowed, data)
 }
 
+// BadRequestResponse returns an HTTP 400 (Bad Request) response with an
+// appropriate error message.
 func (app *WebApp) BadRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	data := map[string]string{
 		"error": err.Error(),
@@ -105,10 +111,15 @@ func (app *WebApp) BadRequestResponse(w http.ResponseWriter, r *http.Request, er
 	app.failResponse(w, r, http.StatusBadRequest, data)
 }
 
+// FailedValidationResponse returns an HTTP 422 (Unprocessable Entity) response
+// with an appropriate error message.
 func (app *WebApp) FailedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
 	app.failResponse(w, r, http.StatusUnprocessableEntity, errors)
 }
 
+// EditConflictResponse means that a resource could not be updated due to a
+// recent update preventing it. An HTTP 409 (Conflict) response is returned with
+// an appropriate error message.
 func (app *WebApp) EditConflictResponse(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"error":  "Unable to update the record due to an edit conflict",
@@ -117,6 +128,8 @@ func (app *WebApp) EditConflictResponse(w http.ResponseWriter, r *http.Request) 
 	app.failResponse(w, r, http.StatusConflict, data)
 }
 
+// RateLimitExceeded returns an HTTP 429 (Too Many Requests) response with an
+// appropriate message and further help details.
 func (app *WebApp) RateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"error":   "Rate limit exceeded",
@@ -126,6 +139,8 @@ func (app *WebApp) RateLimitExceededResponse(w http.ResponseWriter, r *http.Requ
 	app.failResponse(w, r, http.StatusTooManyRequests, data)
 }
 
+// InvalidCredentialsResponse returns an HTTP 401 (Unauthorized) response and an
+// appropriate error message.
 func (app *WebApp) InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"error":  "Invalid authentication credentials",
@@ -134,6 +149,8 @@ func (app *WebApp) InvalidCredentialsResponse(w http.ResponseWriter, r *http.Req
 	app.failResponse(w, r, http.StatusUnauthorized, data)
 }
 
+// InvalidAuthenticationTokenResponse returns an HTTP 401 (Unauthorized) reponse
+// along with an appropriate error message and help text.
 func (app *WebApp) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("WWW-Authenticate", "Bearer")
 
@@ -144,6 +161,8 @@ func (app *WebApp) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *
 	app.failResponse(w, r, http.StatusUnauthorized, data)
 }
 
+// AuthenticationRequiredResponse returns an HTTP 401 (Unathorized) reponse along with an
+// appropriate error message and help text.
 func (app *WebApp) AuthenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"error":  "You must be authenticated to access this resource",
@@ -152,6 +171,8 @@ func (app *WebApp) AuthenticationRequiredResponse(w http.ResponseWriter, r *http
 	app.failResponse(w, r, http.StatusUnauthorized, data)
 }
 
+// InactiveAccountResponse returns an HTTP 403 (Forbidden) reponse along with an
+// appropriate error message and help text.
 func (app *WebApp) InactiveAccountResponse(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"error":  "Your user account must be activated to access this resource",
@@ -160,6 +181,8 @@ func (app *WebApp) InactiveAccountResponse(w http.ResponseWriter, r *http.Reques
 	app.failResponse(w, r, http.StatusForbidden, data)
 }
 
+// NotPermittedResponse returns an HTTP 403 (Forbidden) reponse along with an
+// appropriate error message and help text.
 func (app *WebApp) NotPermittedResponse(w http.ResponseWriter, r *http.Request) {
 	e := "Your user account does not have the necessary permissions to access this resource"
 	data := map[string]string{
