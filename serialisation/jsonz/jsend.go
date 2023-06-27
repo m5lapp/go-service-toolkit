@@ -8,16 +8,16 @@ import (
 const (
 	errorMsgStatus = "http status code (%d) for %s is not in range %d to %d"
 
-	jSendStatusError   = "error"
-	jSendStatusFail    = "fail"
-	jSendStatusSuccess = "success"
+	JSendStatusError   = "error"
+	JSendStatusFail    = "fail"
+	JSendStatusSuccess = "success"
 )
 
-// jSendResponse represents a JSend JSON response payload. The Status field is
+// JSendResponse represents a JSend JSON response payload. The Status field is
 // mandatory for all responses, whilst the others are used depending on whether
 // the response is a success, a fail or an error. See:
 // https://github.com/omniti-labs/jsend
-type jSendResponse struct {
+type JSendResponse struct {
 	Status  string `json:"status"`
 	Data    any    `json:"data,omitempty"`
 	Code    *int   `json:"code,omitempty"`
@@ -27,9 +27,9 @@ type jSendResponse struct {
 // NewJSendSuccess returns a JSendResponse that indicates that everything went
 // well with the request and usually some data is also returned. See:
 // https://github.com/omniti-labs/jsend#success
-func NewJSendSuccess(data any) jSendResponse {
-	return jSendResponse{
-		Status: jSendStatusSuccess,
+func NewJSendSuccess(data any) JSendResponse {
+	return JSendResponse{
+		Status: JSendStatusSuccess,
 		Data:   data,
 	}
 }
@@ -39,9 +39,9 @@ func NewJSendSuccess(data any) jSendResponse {
 // provide "details of why the request failed. If the reasons for failure
 // correspond to POST values, the response object's keys SHOULD correspond to
 // those POST values". See: https://github.com/omniti-labs/jsend#fail
-func NewJSendFail(data any) jSendResponse {
-	return jSendResponse{
-		Status: jSendStatusFail,
+func NewJSendFail(data any) JSendResponse {
+	return JSendResponse{
+		Status: JSendStatusFail,
 		Data:   data,
 	}
 }
@@ -51,9 +51,9 @@ func NewJSendFail(data any) jSendResponse {
 // end-user and explain what went wrong. Code is an optional numeric code for
 // the error and data may contain additional information about the error such as
 // a stack trace. See: https://github.com/omniti-labs/jsend#error
-func NewJSendError(message string, code *int, data *any) jSendResponse {
-	return jSendResponse{
-		Status:  jSendStatusError,
+func NewJSendError(message string, code *int, data *any) JSendResponse {
+	return JSendResponse{
+		Status:  JSendStatusError,
 		Message: message,
 		Code:    code,
 		Data:    data,
@@ -64,7 +64,7 @@ func NewJSendError(message string, code *int, data *any) jSendResponse {
 // code, then calls WriteJSON with an appropriate JSend payload.
 func WriteJSendSuccess(w http.ResponseWriter, status int, headers http.Header, data any) error {
 	if status < 200 || status > 299 {
-		return fmt.Errorf(errorMsgStatus, status, jSendStatusSuccess, 200, 299)
+		return fmt.Errorf(errorMsgStatus, status, JSendStatusSuccess, 200, 299)
 	}
 
 	err := WriteJSON(w, status, headers, NewJSendSuccess(data))
@@ -79,7 +79,7 @@ func WriteJSendSuccess(w http.ResponseWriter, status int, headers http.Header, d
 // error code, then calls WriteJSON with an appropriate JSend payload.
 func WriteJSendFail(w http.ResponseWriter, status int, headers http.Header, data any) error {
 	if status < 400 || status > 499 {
-		return fmt.Errorf(errorMsgStatus, status, jSendStatusFail, 400, 499)
+		return fmt.Errorf(errorMsgStatus, status, JSendStatusFail, 400, 499)
 	}
 
 	err := WriteJSON(w, status, headers, NewJSendFail(data))
@@ -95,7 +95,7 @@ func WriteJSendFail(w http.ResponseWriter, status int, headers http.Header, data
 func WriteJSendError(w http.ResponseWriter, status int, headers http.Header,
 	message string, code *int, data *any) error {
 	if status < 500 || status > 599 {
-		return fmt.Errorf(errorMsgStatus, status, jSendStatusError, 500, 599)
+		return fmt.Errorf(errorMsgStatus, status, JSendStatusError, 500, 599)
 	}
 
 	err := WriteJSON(w, status, headers, NewJSendError(message, code, data))

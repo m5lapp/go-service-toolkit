@@ -71,9 +71,9 @@ func (app *WebApp) ServerErrorResponse(w http.ResponseWriter, r *http.Request, e
 // contains an "error" parameter and optionally, "details" and "action"
 // parameters with further information on how they can recover.
 
-// failResponse requests an arbitrary JSend-formatted HTTP response for a
+// FailResponse requests an arbitrary JSend-formatted HTTP response for a
 // client-side error be sent to the client with the given HTTP status and data.
-func (app *WebApp) failResponse(w http.ResponseWriter, r *http.Request, status int, data any) {
+func (app *WebApp) FailResponse(w http.ResponseWriter, r *http.Request, status int, data any) {
 	err := jsonz.WriteJSendFail(w, status, nil, data)
 	if err != nil {
 		app.logError(r, err)
@@ -87,7 +87,7 @@ func (app *WebApp) NotFoundResponse(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"error": "The requested resource could not be found",
 	}
-	app.failResponse(w, r, http.StatusNotFound, data)
+	app.FailResponse(w, r, http.StatusNotFound, data)
 }
 
 // MethodNotAllowedError returns an HTTP 405 (Method Not Allowed) response with
@@ -99,7 +99,7 @@ func (app *WebApp) MethodNotAllowedError(w http.ResponseWriter, r *http.Request)
 		"error":  e,
 		"action": a,
 	}
-	app.failResponse(w, r, http.StatusMethodNotAllowed, data)
+	app.FailResponse(w, r, http.StatusMethodNotAllowed, data)
 }
 
 // BadRequestResponse returns an HTTP 400 (Bad Request) response with an
@@ -108,13 +108,13 @@ func (app *WebApp) BadRequestResponse(w http.ResponseWriter, r *http.Request, er
 	data := map[string]string{
 		"error": err.Error(),
 	}
-	app.failResponse(w, r, http.StatusBadRequest, data)
+	app.FailResponse(w, r, http.StatusBadRequest, data)
 }
 
 // FailedValidationResponse returns an HTTP 422 (Unprocessable Entity) response
 // with an appropriate error message.
 func (app *WebApp) FailedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
-	app.failResponse(w, r, http.StatusUnprocessableEntity, errors)
+	app.FailResponse(w, r, http.StatusUnprocessableEntity, errors)
 }
 
 // EditConflictResponse means that a resource could not be updated due to a
@@ -125,7 +125,7 @@ func (app *WebApp) EditConflictResponse(w http.ResponseWriter, r *http.Request) 
 		"error":  "Unable to update the record due to an edit conflict",
 		"action": "Please try again",
 	}
-	app.failResponse(w, r, http.StatusConflict, data)
+	app.FailResponse(w, r, http.StatusConflict, data)
 }
 
 // RateLimitExceeded returns an HTTP 429 (Too Many Requests) response with an
@@ -136,7 +136,7 @@ func (app *WebApp) RateLimitExceededResponse(w http.ResponseWriter, r *http.Requ
 		"details": "Large numbers of requests from the same IP address are limited over time",
 		"action":  "Wait a while and then try again, or send fewer requests",
 	}
-	app.failResponse(w, r, http.StatusTooManyRequests, data)
+	app.FailResponse(w, r, http.StatusTooManyRequests, data)
 }
 
 // InvalidCredentialsResponse returns an HTTP 401 (Unauthorized) response and an
@@ -146,7 +146,7 @@ func (app *WebApp) InvalidCredentialsResponse(w http.ResponseWriter, r *http.Req
 		"error":  "Invalid authentication credentials",
 		"action": "Check the credentials provided and that an account definitely exists",
 	}
-	app.failResponse(w, r, http.StatusUnauthorized, data)
+	app.FailResponse(w, r, http.StatusUnauthorized, data)
 }
 
 // InvalidAuthenticationTokenResponse returns an HTTP 401 (Unauthorized) reponse
@@ -158,7 +158,7 @@ func (app *WebApp) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *
 		"error":  "Invalid or missing authentication token",
 		"action": "Check the token provided or request a new one and try again",
 	}
-	app.failResponse(w, r, http.StatusUnauthorized, data)
+	app.FailResponse(w, r, http.StatusUnauthorized, data)
 }
 
 // AuthenticationRequiredResponse returns an HTTP 401 (Unathorized) reponse along with an
@@ -168,7 +168,7 @@ func (app *WebApp) AuthenticationRequiredResponse(w http.ResponseWriter, r *http
 		"error":  "You must be authenticated to access this resource",
 		"action": "Authenticate yourself, then try again with the provided credentials",
 	}
-	app.failResponse(w, r, http.StatusUnauthorized, data)
+	app.FailResponse(w, r, http.StatusUnauthorized, data)
 }
 
 // InactiveAccountResponse returns an HTTP 403 (Forbidden) reponse along with an
@@ -178,7 +178,7 @@ func (app *WebApp) InactiveAccountResponse(w http.ResponseWriter, r *http.Reques
 		"error":  "Your user account must be activated to access this resource",
 		"action": "Activate your account and then try again",
 	}
-	app.failResponse(w, r, http.StatusForbidden, data)
+	app.FailResponse(w, r, http.StatusForbidden, data)
 }
 
 // NotPermittedResponse returns an HTTP 403 (Forbidden) reponse along with an
@@ -188,5 +188,5 @@ func (app *WebApp) NotPermittedResponse(w http.ResponseWriter, r *http.Request) 
 	data := map[string]string{
 		"error": e,
 	}
-	app.failResponse(w, r, http.StatusForbidden, data)
+	app.FailResponse(w, r, http.StatusForbidden, data)
 }
