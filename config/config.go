@@ -125,7 +125,7 @@ type Service struct {
 // Flags parses the flags for an external service. The parameters are the name
 // and description to use for the flag.
 func (s *Service) Flags(flagName, flagDesc string) {
-	desc := fmt.Sprintf(flagDesc, "in format: [HOST]:POST")
+	desc := fmt.Sprintf(flagDesc, "in format: PROTOCOL://HOST[:POST]")
 	flag.StringVar(&s.Addr, flagName, "", desc)
 }
 
