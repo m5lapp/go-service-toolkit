@@ -44,7 +44,18 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	const maxBytes int64 = 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
 
-	dec := json.NewDecoder(r.Body)
+	err := DecodeJSON(r.Body, dst)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DecodeJSON unmarshals the contents of j into dst, checking for and returning
+// any errors along the way.
+func DecodeJSON(j io.ReadCloser, dst any) error {
+	dec := json.NewDecoder(j)
 	dec.DisallowUnknownFields()
 
 	err := dec.Decode(dst)
@@ -56,27 +67,27 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 
 		switch {
 		case errors.As(err, &syntaxError):
-			return fmt.Errorf("body contains badly formatted json at character %d", syntaxError.Offset)
+			return fmt.Errorf("JSON body contains badly formatted json at character %d", syntaxError.Offset)
 
 		case errors.Is(err, io.ErrUnexpectedEOF):
-			return errors.New("body contains badly formed JSON")
+			return errors.New("JSON body contains badly formed JSON")
 
 		case errors.As(err, &unmarshalTypeError):
 			if unmarshalTypeError.Field != "" {
-				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
+				return fmt.Errorf("JSON body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
 			}
-			return fmt.Errorf("body contains incorrect JSON type at character %d", unmarshalTypeError.Offset)
+			return fmt.Errorf("JSON body contains incorrect JSON type at character %d", unmarshalTypeError.Offset)
 
 		case errors.Is(err, io.EOF):
-			return errors.New("body must not be empty")
+			return errors.New("JSON body must not be empty")
 
 		// Check there are no additional, unknown fields in the JSON body.
 		case strings.HasPrefix(err.Error(), "json: unknown field "):
 			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
-			return fmt.Errorf("body contains unknown key %s", fieldName)
+			return fmt.Errorf("JSON body contains unknown key %s", fieldName)
 
 		case errors.As(err, &maxBytesError):
-			return fmt.Errorf("body must not be larger than %d bytes", maxBytesError.Limit)
+			return fmt.Errorf("JSON body must not be larger than %d bytes", maxBytesError.Limit)
 
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)
@@ -86,10 +97,10 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 		}
 	}
 
-	// Call Decode again to check if there is any additional data in the body.
+	// Call Decode again to check if there is any additional data in the string.
 	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
-		return errors.New("body must only contain a single JSON value")
+		return errors.New("JSON body must only contain a single JSON value")
 	}
 
 	return nil
