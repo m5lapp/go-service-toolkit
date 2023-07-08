@@ -1,6 +1,7 @@
 package jsonz
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -22,6 +23,13 @@ type JSendResponse struct {
 	Data    any    `json:"data,omitempty"`
 	Code    *int   `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
+}
+
+type JSendResponseRaw struct {
+	Status  string          `json:"status"`
+	Data    json.RawMessage `json:"data,omitempty"`
+	Code    *int            `json:"code,omitempty"`
+	Message string          `json:"message,omitempty"`
 }
 
 // NewJSendSuccess returns a JSendResponse that indicates that everything went

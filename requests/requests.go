@@ -3,6 +3,7 @@ package requests
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -15,13 +16,13 @@ import (
 // JSendResponse struct where the data field is the dataStruct struct. The
 // JSendResponse struct is then returned along with the HTTP status code and an
 // error.
-func RequestJSend(method, url string, tOut time.Duration,
-	body any, dataStruct any) (int, *jsonz.JSendResponse, error) {
+func RequestJSend(method, url string, tOut time.Duration, requestBody any,
+	targetStruct any) (int, *jsonz.JSendResponseRaw, error) {
 	var reqBody io.Reader
 
 	// If a request body has been provided, attempt to marshal it into JSON.
-	if body != nil {
-		js, err := json.Marshal(body)
+	if requestBody != nil {
+		js, err := json.Marshal(requestBody)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -42,11 +43,29 @@ func RequestJSend(method, url string, tOut time.Duration,
 		return 0, nil, err
 	}
 
-	dst := &jsonz.JSendResponse{Data: dataStruct}
-	err = jsonz.DecodeJSON(res.Body, dst)
+	// First pass to get the JSend response status.
+	responseBody := &jsonz.JSendResponseRaw{}
+	err = jsonz.DecodeJSON(res.Body, responseBody, true)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	return res.StatusCode, dst, nil
+	if responseBody.Status != jsonz.JSendStatusSuccess {
+		switch responseBody.Status {
+		case jsonz.JSendStatusError:
+			return 0, nil, errors.New("todo error")
+		case jsonz.JSendStatusFail:
+			return 0, nil, errors.New("todo also error")
+		default:
+			return 0, nil, errors.New("invalid JSend status")
+		}
+	}
+
+	// Second pass to decode the JSend response into the target struct.
+	err = jsonz.DecodeJSON(bytes.NewReader(responseBody.Data), targetStruct, true)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return res.StatusCode, responseBody, nil
 }

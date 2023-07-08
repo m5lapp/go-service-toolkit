@@ -44,7 +44,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	const maxBytes int64 = 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
 
-	err := DecodeJSON(r.Body, dst)
+	err := DecodeJSON(r.Body, dst, false)
 	if err != nil {
 		return err
 	}
@@ -53,10 +53,15 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 }
 
 // DecodeJSON unmarshals the contents of j into dst, checking for and returning
-// any errors along the way.
-func DecodeJSON(j io.ReadCloser, dst any) error {
+// any errors along the way. The unknownFields parameter determines whether
+// having any fields in j that do not exist in dst causes an error to be
+// returned.
+func DecodeJSON(j io.Reader, dst any, unknownFields bool) error {
 	dec := json.NewDecoder(j)
-	dec.DisallowUnknownFields()
+
+	if !unknownFields {
+		dec.DisallowUnknownFields()
+	}
 
 	err := dec.Decode(dst)
 	if err != nil {
