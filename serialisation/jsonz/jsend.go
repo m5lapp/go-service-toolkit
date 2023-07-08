@@ -1,9 +1,13 @@
 package jsonz
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"time"
 )
 
 const (
@@ -13,6 +17,9 @@ const (
 	JSendStatusFail    = "fail"
 	JSendStatusSuccess = "success"
 )
+
+// JSend Statuses should only be one of the JSendStatus* consts.
+var ErrInvalidJSendStatus error = errors.New("invalid JSend status field")
 
 // JSendResponse represents a JSend JSON response payload. The Status field is
 // mandatory for all responses, whilst the others are used depending on whether
@@ -25,6 +32,10 @@ type JSendResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
+// JSendResponseRaw also represents a JSend JSON response payload like
+// JSendResponse, except the Data field is a json.RawMessage. This is useful for
+// unmarshaling JSend responses into where the format of Data is unknown until
+// the Status field has been decoded and checked.
 type JSendResponseRaw struct {
 	Status  string          `json:"status"`
 	Data    json.RawMessage `json:"data,omitempty"`
@@ -112,4 +123,66 @@ func WriteJSendError(w http.ResponseWriter, status int, headers http.Header,
 	}
 
 	return nil
+}
+
+// RequestJSend sends an HTTP request of the given method type to the given URL
+// with the given JSON requestBody and attempts to decode the response payload
+// into a JSendResponseRaw struct and if the response has a success Status, then
+// the Data field is decoded into the targetStruct struct.
+//
+// The JSendResponseRaw struct is returned along with the HTTP response, and an
+// error if there is one.
+func RequestJSend(method, url string, tOut time.Duration, requestBody any,
+	targetStruct any) (*http.Response, *JSendResponseRaw, error) {
+	var reqBody io.Reader
+
+	// If a request body has been provided, attempt to marshal it into JSON.
+	if requestBody != nil {
+		js, err := json.Marshal(requestBody)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		reqBody = bytes.NewReader(js)
+	}
+
+	// Create and prepare the HTTP request.
+	req, err := http.NewRequest(method, url, reqBody)
+	if err != nil {
+		return nil, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// Create an HTTP client and send the request.
+	client := http.Client{Timeout: tOut}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Decode the response body to get the JSend response status.
+	jSendBody := &JSendResponseRaw{}
+	err = DecodeJSON(resp.Body, jSendBody, true)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Check the JSend response's Status field is valid.
+	if jSendBody.Status != JSendStatusSuccess {
+		switch jSendBody.Status {
+		case JSendStatusFail, JSendStatusError:
+			return resp, jSendBody, nil
+		default:
+			return resp, jSendBody, ErrInvalidJSendStatus
+		}
+	}
+
+	// The JSend body contains a success Status, so use a second decoding pass
+	// to decode the JSend Data field into targetStruct.
+	err = DecodeJSON(bytes.NewReader(jSendBody.Data), targetStruct, true)
+	if err != nil {
+		return resp, jSendBody, err
+	}
+
+	return resp, jSendBody, nil
 }
