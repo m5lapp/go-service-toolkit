@@ -3,8 +3,9 @@ package validator
 import "regexp"
 
 var (
-	EmailRX    = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	UsernameRX = regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9_-]{3,30}[A-Za-z0-9]")
+	BetterGUIDRX = regexp.MustCompile("^[a-zA-Z0-9_-]{20}")
+	EmailRX      = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	UsernameRX   = regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9_-]{3,30}[A-Za-z0-9]")
 )
 
 // A Validator is simply a map from field names to error messages.
