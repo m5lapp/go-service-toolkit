@@ -76,3 +76,26 @@ func ValidateEmail(v *Validator, email string) {
 	v.Check(email != "", "email", "must be provided")
 	v.Check(Matches(email, EmailRX), "email", "must be a valid email address")
 }
+
+// ValidateStrLenByte validates that the given string is between min and max
+// bytes long. Any errors are saved into the given key in the given Validator's
+// Error map.
+func ValidateStrLenByte(v *Validator, value, key string, min, max int) {
+	if len(value) < min {
+		v.AddError(key, "Must be at least %d bytes long")
+	} else if len(value) > max {
+		v.AddError(key, "Must not be more than %d bytes long")
+	}
+}
+
+// ValidateStrLenRune validates that the given string is between min and max
+// runes (characters) long. Any errors are saved into the given key in the given
+// Validator's Error map.
+func ValidateStrLenRune(v *Validator, value, key string, min, max int) {
+	l := len([]rune(value))
+	if l < min {
+		v.AddError(key, "Must be at least %d characters long")
+	} else if len(value) > max {
+		v.AddError(key, "Must not be more than %d characters long")
+	}
+}
