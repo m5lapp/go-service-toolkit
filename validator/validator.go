@@ -1,9 +1,13 @@
 package validator
 
-import "regexp"
+import (
+	"fmt"
+	"net/url"
+	"regexp"
+)
 
 var (
-	BetterGUIDRX = regexp.MustCompile("^[a-zA-Z0-9_-]{20}")
+	BetterGUIDRX = regexp.MustCompile("^[a-zA-Z0-9_-]{20}$")
 	EmailRX      = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	UsernameRX   = regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9_-]{3,30}[A-Za-z0-9]")
 )
@@ -82,9 +86,9 @@ func ValidateEmail(v *Validator, email string) {
 // Error map.
 func ValidateStrLenByte(v *Validator, value, key string, min, max int) {
 	if len(value) < min {
-		v.AddError(key, "Must be at least %d bytes long")
+		v.AddError(key, fmt.Sprintf("Must be at least %d bytes long", min))
 	} else if len(value) > max {
-		v.AddError(key, "Must not be more than %d bytes long")
+		v.AddError(key, fmt.Sprintf("Must not be more than %d bytes long", max))
 	}
 }
 
@@ -94,8 +98,30 @@ func ValidateStrLenByte(v *Validator, value, key string, min, max int) {
 func ValidateStrLenRune(v *Validator, value, key string, min, max int) {
 	l := len([]rune(value))
 	if l < min {
-		v.AddError(key, "Must be at least %d characters long")
+		v.AddError(key, fmt.Sprintf("Must be at least %d characters long", min))
 	} else if len(value) > max {
-		v.AddError(key, "Must not be more than %d characters long")
+		v.AddError(key, fmt.Sprintf("Must not be more than %d characters long", max))
 	}
+}
+
+// ValidateURL validates that the given string can be parsed as a URL.
+func ValidateURL(v *Validator, value, key string) {
+	_, err := url.ParseRequestURI(value)
+	if err != nil {
+		v.AddError("url", "Must be a valid URL")
+	}
+}
+
+// ValidateURLHTTP validates that the given string can be parsed as a URL and
+// that the scheme is an HTTP one.
+func ValidateURLHTTP(v *Validator, value, key string) {
+	u, err := url.ParseRequestURI(value)
+	if err != nil {
+		v.AddError(key, "Must be a valid URL")
+		return
+	}
+
+	schemes := []string{"http", "https"}
+	v.Check(PermittedValue[string](u.Scheme, schemes...),
+		key, "Must begin with http:// or https://")
 }
